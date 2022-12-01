@@ -1,5 +1,6 @@
 """Forms for the microblogs app."""
 from django import forms
+from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
 from .models import User, Post
 
@@ -8,6 +9,17 @@ class LogInForm(forms.Form):
 
     username = forms.CharField(label="Username")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
+
+    def get_user(self):
+        """Returns authenticated user if possible."""
+
+        user = None
+        if self.is_valid():
+            username = self.cleaned_data.get('username')
+            password = self.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+        return user
+
 
 class UserForm(forms.ModelForm):
     """Form to update user profiles."""
@@ -18,6 +30,7 @@ class UserForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'bio']
         widgets = { 'bio': forms.Textarea() }
+
 
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
@@ -42,6 +55,7 @@ class PasswordForm(forms.Form):
         password_confirmation = self.cleaned_data.get('password_confirmation')
         if new_password != password_confirmation:
             self.add_error('password_confirmation', 'Confirmation does not match password.')
+
 
 class SignUpForm(forms.ModelForm):
     """Form enabling unregistered users to sign up."""
